@@ -1,0 +1,473 @@
+{
+  "address": "CpvzJ6dcKsmfZMAnmhyx8vs3H8UjEbQnnzzPN1b7RDcC",
+  "metadata": {
+    "name": "forza_wallpapers",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "actualizar_precio",
+      "discriminator": [
+        128,
+        225,
+        245,
+        253,
+        115,
+        119,
+        118,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "galeria",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  108,
+                  101,
+                  114,
+                  105,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "wallpaper"
+          ]
+        },
+        {
+          "name": "wallpaper",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  112,
+                  97,
+                  112,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "galeria"
+              },
+              {
+                "kind": "account",
+                "path": "wallpaper.id",
+                "account": "Wallpaper"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "galeria",
+            "wallpaper"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "nuevo_precio",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "crear_galeria",
+      "discriminator": [
+        57,
+        218,
+        43,
+        116,
+        35,
+        50,
+        217,
+        157
+      ],
+      "accounts": [
+        {
+          "name": "galeria",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  108,
+                  101,
+                  114,
+                  105,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nombre_galeria",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "eliminar_wallpaper",
+      "discriminator": [
+        58,
+        189,
+        20,
+        97,
+        174,
+        177,
+        97,
+        245
+      ],
+      "accounts": [
+        {
+          "name": "galeria",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  108,
+                  101,
+                  114,
+                  105,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "wallpaper"
+          ]
+        },
+        {
+          "name": "wallpaper",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  112,
+                  97,
+                  112,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "galeria"
+              },
+              {
+                "kind": "account",
+                "path": "wallpaper.id",
+                "account": "Wallpaper"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "galeria",
+            "wallpaper"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "publicar_wallpaper",
+      "discriminator": [
+        142,
+        57,
+        194,
+        239,
+        22,
+        236,
+        254,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "galeria",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  108,
+                  101,
+                  114,
+                  105,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "wallpaper",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  108,
+                  108,
+                  112,
+                  97,
+                  112,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "galeria"
+              },
+              {
+                "kind": "account",
+                "path": "galeria.total_wallpapers",
+                "account": "Galeria"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "galeria"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "titulo",
+          "type": "string"
+        },
+        {
+          "name": "juego",
+          "type": "string"
+        },
+        {
+          "name": "url_imagen",
+          "type": "string"
+        },
+        {
+          "name": "precio_lamports",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Galeria",
+      "discriminator": [
+        161,
+        205,
+        52,
+        51,
+        161,
+        19,
+        187,
+        236
+      ]
+    },
+    {
+      "name": "Wallpaper",
+      "discriminator": [
+        90,
+        233,
+        93,
+        88,
+        33,
+        61,
+        5,
+        170
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NombreGaleriaMuyLargo",
+      "msg": "El nombre de la galería excede el máximo de 30 caracteres."
+    },
+    {
+      "code": 6001,
+      "name": "TituloMuyLargo",
+      "msg": "El titulo excede el máximo de 30 caracteres."
+    },
+    {
+      "code": 6002,
+      "name": "JuegoMuyLargo",
+      "msg": "El nombre del juego excede el máximo de 20 caracteres."
+    },
+    {
+      "code": 6003,
+      "name": "UrlMuyLarga",
+      "msg": "La URL de la imagen excede el máximo de 80 caracteres."
+    },
+    {
+      "code": 6004,
+      "name": "CampoVacio",
+      "msg": "Los campos de texto no pueden estar vacíos."
+    },
+    {
+      "code": 6005,
+      "name": "NoAutorizado",
+      "msg": "Permiso denegado: solo el propietario puede realizar esta acción."
+    },
+    {
+      "code": 6006,
+      "name": "GaleriaInvalida",
+      "msg": "El wallpaper no pertenece a la galería indicada."
+    },
+    {
+      "code": 6007,
+      "name": "ContadorDesbordado",
+      "msg": "El contador de wallpapers se desbordó."
+    }
+  ],
+  "types": [
+    {
+      "name": "Galeria",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "nombre_galeria",
+            "type": "string"
+          },
+          {
+            "name": "total_wallpapers",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Wallpaper",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "galeria",
+            "type": "pubkey"
+          },
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "titulo",
+            "type": "string"
+          },
+          {
+            "name": "juego",
+            "type": "string"
+          },
+          {
+            "name": "url_imagen",
+            "type": "string"
+          },
+          {
+            "name": "precio_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "descargas",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

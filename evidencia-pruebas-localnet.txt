@@ -1,0 +1,7 @@
+forza_wallpapers
+Todas las comprobaciones de Forza Wallpapers finalizaron correctamente.
+✔ Comprueba el flujo completo de Forza Wallpapers (1661ms)
+
+1 passing (2s)
+
+Done in 4.14s.

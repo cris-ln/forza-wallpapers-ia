@@ -1,0 +1,12 @@
+{
+    "idl": "src/idl/forza_wallpapers.json",
+    "before": [],
+    "scripts": {
+        "js": {
+            "from": "@codama/renderers-js",
+            "args": [
+                "clients/js"
+            ]
+        }
+    }
+}

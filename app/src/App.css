@@ -1,0 +1,276 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #10131c;
+  color: #f5f5f5;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.pagina {
+  width: min(1200px, 92%);
+  margin: auto;
+  padding: 35px 0;
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 35px;
+}
+
+.encabezado h1 {
+  font-size: 36px;
+  margin: 0 0 8px;
+  color: #f4a340;
+}
+
+.encabezado p {
+  color: #b7bdca;
+}
+
+.panel,
+.tarjeta {
+  background: #1b2130;
+  border: 1px solid #30394d;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.panel h2,
+.catalogo h2 {
+  color: #f4a340;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #414b60;
+  border-radius: 8px;
+  background: #111725;
+  color: white;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #f4a340;
+}
+
+button {
+  padding: 13px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #e58b27;
+  color: #171717;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: #ffad4d;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mensaje {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background: #263b32;
+  border: 1px solid #3d7056;
+  overflow-wrap: anywhere;
+}
+
+.catalogo {
+  margin-top: 35px;
+}
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+}
+
+.tarjeta {
+  padding: 0;
+  overflow: hidden;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tarjeta img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #111725;
+}
+
+.tarjeta .instagram-media {
+  margin: 10px auto !important;
+  width: calc(100% - 20px) !important;
+  min-width: 0 !important;
+  max-width: 540px !important;
+}
+
+.contenido-tarjeta {
+  padding: 18px;
+}
+
+.contenido-tarjeta h3 {
+  margin-top: 0;
+}
+
+.contenido-tarjeta p {
+  color: #c0c6d2;
+}
+
+.contenido-tarjeta input,
+.contenido-tarjeta button {
+  margin-top: 10px;
+}
+
+.boton-eliminar {
+  background: #a83c43;
+  color: white;
+  width: 100%;
+}
+
+.boton-eliminar:hover {
+  background: #d34b53;
+}
+
+@media (max-width: 600px) {
+  .encabezado {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .encabezado h1 {
+    font-size: 29px;
+  }
+
+  .pagina {
+    padding: 20px 0;
+  }
+}
+
+
+/* PORTADA PREMIUM */
+
+.hero {
+  position: relative;
+  min-height: 390px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 45px;
+  margin-bottom: 40px;
+  border: 1px solid #383b43;
+  border-radius: 16px;
+  background:
+    linear-gradient(90deg, #11131c 5%, #11131cdd 50%, #11131c33),
+    linear-gradient(135deg, #48270f, #171b28 65%, #11131c);
+}
+
+.hero-contenido {
+  position: relative;
+  z-index: 2;
+  max-width: 580px;
+}
+
+.hero-etiqueta {
+  color: #ff9b35;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.hero h2 {
+  font-size: clamp(42px, 7vw, 76px);
+  line-height: 0.98;
+  margin: 20px 0;
+  font-weight: 900;
+  letter-spacing: -3px;
+}
+
+.hero p {
+  max-width: 420px;
+  color: #c2c5ce;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+.hero-boton {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 15px 22px;
+  border-radius: 5px;
+  background: #f28b2d;
+  color: #171717;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 1px;
+  transition: 0.2s;
+}
+
+.hero-boton:hover {
+  background: #ffb15d;
+  transform: translateY(-2px);
+}
+
+.hero-numero {
+  position: absolute;
+  right: 35px;
+  bottom: 20px;
+  color: #ffffff12;
+  font-size: clamp(45px, 8vw, 100px);
+  font-weight: 900;
+  letter-spacing: -5px;
+}
+
+#catalogo {
+  scroll-margin-top: 25px;
+}
+
+@media (max-width: 600px) {
+  .hero {
+    min-height: 340px;
+    padding: 25px;
+  }
+
+  .hero h2 {
+    font-size: 46px;
+  }
+
+  .hero-numero {
+    font-size: 48px;
+  }
+}
