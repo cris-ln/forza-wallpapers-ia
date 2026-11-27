@@ -34,6 +34,36 @@ export const PROGRAM_ID = new PublicKey(
 
 export const DEVNET_RPC = "https://api.devnet.solana.com";
 
+// Límite de tamaño de una transacción Solana.
+const MAX_TRANSACTION_SIZE = 1232;
+
+/**
+ * Comprueba el tamaño serializado antes de solicitar la firma de la wallet.
+ * Se permiten firmas pendientes para medir la transacción completa.
+ */
+function validarTamanoTransaccion(transaction: Transaction): number {
+  const bytes = transaction.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+  });
+
+  const tamano = bytes.length;
+
+  console.log(
+    `Transacción serializada: ${tamano}/${MAX_TRANSACTION_SIZE} bytes.`
+  );
+
+  if (tamano > MAX_TRANSACTION_SIZE) {
+    throw new Error(
+      `La transacción ocupa ${tamano} bytes y supera el límite de ` +
+      `${MAX_TRANSACTION_SIZE} bytes. No se solicitó la firma.`
+    );
+  }
+
+  return tamano;
+}
+
+
 // Estructura de una galería
 export interface GaleriaData {
   publicKey: PublicKey;
@@ -218,6 +248,8 @@ export async function publicarWallpaper(
     feePayer: wallet.publicKey,
     recentBlockhash: latestBlockhash.blockhash,
   }).add(...instrucciones);
+
+  validarTamanoTransaccion(transaction);
 
   const signedTransaction = await wallet.signTransaction(transaction);
 
@@ -476,6 +508,8 @@ export async function reclamarReconocimiento(
     feePayer: wallet.publicKey,
     recentBlockhash: latestBlockhash.blockhash,
   }).add(instruccion);
+
+  validarTamanoTransaccion(transaction);
 
   // Simulación previa: todavía no se solicita la firma de Phantom.
   const simulacion = await connection.simulateTransaction(transaction);

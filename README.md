@@ -344,3 +344,140 @@ El agente de inteligencia artificial funciona de manera independiente desde la t
 
 **Forza Wallpapers**  
 Proyecto de desarrollo blockchain enfocado en el catálogo de wallpapers de Forza Horizon 5 y Forza Motorsport.
+---
+
+## Workshop 4 — Reconocimientos cNFT con Bubblegum V2
+
+Este proyecto adapta el ejercicio de reconocimientos comprimidos a **Forza Wallpapers**.
+En lugar de registrar ventas, se utilizan las publicaciones de wallpapers como actividad
+que permite alcanzar hitos y reclamar reconocimientos cNFT.
+
+### Equivalencia del ejercicio
+
+- Actividad registrada: publicación de un wallpaper.
+- Contador: `totalWallpapers` de la cuenta de galería.
+- Firmante: wallet que realiza la operación.
+- Hitos: 1, 3 y 5 publicaciones.
+- Recompensas: `Primer Wallpaper`, `Piloto Destacado` y `Coleccionista de Racing`.
+- Estándar de los reconocimientos: cNFT mediante Bubblegum V2.
+
+### Red y direcciones públicas de Devnet
+
+| Elemento | Dirección |
+|---|---|
+| Red | Solana Devnet |
+| Programa de Forza Wallpapers | `CpvzJ6dcKsmfZMAnmhyx8vs3H8UjEbQnnzzPN1b7RDcC` |
+| Wallet de prueba | `HKKExXwZ27B3AR5AGS6Kmw4GunJ9NjYD3KARWWKGZcEj` |
+| Árbol de Merkle público reutilizado | `2RzjUxtcDad5M7PeBKAnK5CxKn1myjSKTPWTHJJetEta` |
+| Colección de reconocimientos | `7BykoYV7xw4TopdAzUp3mhjXTGNwFwWKHQWgAk1hafFk` |
+| Programa Bubblegum | `BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY` |
+
+El árbol de Merkle utilizado ya existía en Devnet y es público. Por ello, este proyecto
+reutiliza dicho árbol en lugar de crear y financiar uno nuevo.
+
+### Configuración y ejecución del frontend
+
+Desde la carpeta `app`:
+
+1. Copiar `.env.example` como `.env.local`.
+2. Si se dispone de un proveedor RPC propio, configurar su URL en `VITE_SOLANA_RPC_URL`.
+3. Instalar dependencias y ejecutar:
+
+```bash
+npm install
+npm run dev
+```
+
+Para comprobar la compilación:
+
+```bash
+npm run build
+```
+
+No se deben publicar claves privadas, frases semilla ni credenciales de proveedores RPC.
+
+### Reconocimientos emitidos en Devnet
+
+Los siguientes activos fueron consultados y verificados mediante la información de activos
+de Solana (DAS). Los tres pertenecen a la colección indicada y tienen como propietario
+la wallet de prueba.
+
+| Hito | Reconocimiento | Asset ID |
+|---|---|---|
+| 1 publicación | Primer Wallpaper | `A3n9vyEfeTuYG4EH1H5xRmakhvN4gbFhJCQNLFVZb1zE` |
+| 3 publicaciones | Piloto Destacado | `4bH1M717xW47mfrg6qjjsqvDWyDKhZkE5rwyNLk3A28W` |
+| 5 publicaciones | Coleccionista de Racing | `3MHYZbTb6LQFPeBK5XXgikqwkNN6k5mtZU82boKR6LL2` |
+
+#### Firmas de emisión
+
+- Primer Wallpaper: `2jNne8Zs6JCwj77g4ekyi5LfmAB1i72CCdsrKdXMxGkq6ifQufTPjWPJctpaAHd4LJCzkrCBY7pZ8cepyFRZRHCH`
+- Piloto Destacado: `2pG8JbLeWoXDBHHY7ZUu4S27Ewc8sqcm2FFCW168oabCaEXeTjdJ8non7ank1ou6PDkECYVSJ3utJDRstHukQ8bA`
+- Coleccionista de Racing: `C4cCQbofW3sJeHSNMtPS6tAJn5hTeTFzu1dinDWGrJPdAYr8UjQbbmnWqmACpSwWEsXu7EgMyzsCm2rCBKnFktg`
+
+Las emisiones anteriores se realizaron mediante transacciones de reconocimiento independientes
+de las publicaciones originales. Se documentan por separado para distinguir la operación
+de publicación de la operación de emisión.
+
+### Caso sin nueva emisión
+
+Se verificaron publicaciones que no generaron una nueva instrucción `MintV2`:
+
+- Firma: `2Mbkq2HBnYgoswdtnzz7yXqEKzFvjqXMhKwtVY6fRuGLJnZE2AQ9NZHNWrFYZ4gWPZUpUSzBRoKcTgKEcHWwHJhJ`
+- Firma: `5kkeixsPh7c9GbYzxVYhxDdTUZeE2nC29mcvrFRCGRaTRvPgY8SaKUMo9FXdDqdhHsRqBDgriGv2ppsDYHhDCmDf`
+
+Estas transacciones registraron publicaciones mediante el programa de Forza Wallpapers,
+sin incluir una nueva emisión Bubblegum. Por tanto, registrar una publicación no implica
+necesariamente emitir otro reconocimiento.
+
+### Árbol de Merkle y costos
+
+El proyecto reutiliza un árbol público de Devnet, por lo que no fue necesario asumir el
+costo inicial de creación y preparación de un árbol propio. La preparación de un árbol
+incluye su creación y configuración en la red; su costo es independiente del costo de
+emitir un cNFT una vez que el árbol está disponible.
+
+#### Medición de una emisión individual
+
+Se consultó en Devnet la transacción de emisión del reconocimiento `Primer Wallpaper`.
+
+| Métrica | Resultado |
+|---|---:|
+| Estado | Confirmada |
+| Slot | 526767898 |
+| Unidades de cómputo consumidas | 61,653 |
+| Comisión de red | 80,000 lamports (0.00008 SOL) |
+| Tamaño serializado | 744 bytes |
+| Límite de paquete considerado | 1,232 bytes |
+| Resultado | Dentro del límite |
+
+Firma de la transacción:
+
+`2jNne8Zs6JCwj77g4ekyi5LfmAB1i72CCdsrKdXMxGkq6ifQufTPjWPJctpaAHd4LJCzkrCBY7pZ8cepyFRZRHCH`
+
+La transacción utilizó aproximadamente el 60.4 % del límite de 1,232 bytes, por lo que
+quedaron 488 bytes disponibles. La comisión y las unidades de cómputo corresponden a
+esta emisión concreta en Devnet; no deben interpretarse como valores fijos para todas
+las emisiones.
+
+#### Comprobación de serialización
+
+En `app/src/acciones.ts` se incorporó la función `validarTamanoTransaccion`, que
+serializa la transacción sin exigir firmas completas y comprueba que su tamaño no
+supere los 1,232 bytes antes de solicitar la firma de la wallet.
+
+La validación se utiliza en los flujos de publicación de wallpapers y de reclamo de
+reconocimientos. Si la transacción supera el límite, se detiene el proceso antes de
+solicitar la firma. La compilación de producción del frontend se completó correctamente
+con `npm run build`.
+
+#### Costo de preparación del árbol
+
+Para este ejercicio se reutilizó el árbol público de Merkle
+`2RzjUxtcDad5M7PeBKAnK5CxKn1myjSKTPWTHJJetEta`, que ya estaba creado en Devnet.
+Por tanto, este proyecto no tuvo que asumir una nueva transacción de creación ni el
+costo inicial de preparar otro árbol.
+
+La preparación de un árbol propio requeriría una operación adicional de creación y
+configuración, cuyo costo dependería de sus parámetros y de las condiciones de la red.
+La medición de 0.00008 SOL presentada arriba corresponde exclusivamente a la comisión
+de la emisión consultada, no al costo de creación de un árbol.
