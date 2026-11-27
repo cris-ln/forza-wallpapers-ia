@@ -1,7 +1,27 @@
 
 import { Program, AnchorProvider, BorshAccountsCoder } from "@coral-xyz/anchor";
 import type { Idl } from "@coral-xyz/anchor";
-import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
+
+import {
+  crearInstruccionReconocimiento,
+  obtenerReconocimiento,
+} from "./solana/reconocimientos";
+
+import { URI_RECONOCIMIENTOS } from "./solana/configuracion";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { fromWeb3JsPublicKey } from "@metaplex-foundation/umi-web3js-adapters";
+import {
+  dasApi,
+} from "@metaplex-foundation/digital-asset-standard-api";
+import type {
+  DasApiInterface,
+} from "@metaplex-foundation/digital-asset-standard-api";
 import type { AnchorWallet } from "@solana/wallet-adapter-react";
 import BN from "bn.js";
 import { Buffer } from "buffer";
@@ -118,14 +138,15 @@ export async function crearGaleria(
   return `Galería creada correctamente. Transacción: ${tx}`;
 }
 
-// Publicar wallpaper
+// Publicar wallpaper y emitir reconocimiento cNFT cuando corresponda
 export async function publicarWallpaper(
   connection: Connection,
   wallet: AnchorWallet,
   titulo: string,
   juego: string,
   urlImagen: string,
-  precio: BN
+  precio: BN,
+  direccionColeccion?: string
 ): Promise<string> {
   if (Buffer.byteLength(titulo, "utf8") > 30 || !titulo.trim()) {
     throw new Error("El título debe tener entre 1 y 30 bytes.");
@@ -146,10 +167,11 @@ export async function publicarWallpaper(
     .galeria.fetch(galeria);
 
   const id = Number(cuentaGaleria.totalWallpapers.toString());
+  const siguientePublicacion = id + 1;
 
   const [wallpaper] = await calcularPdaWallpaper(galeria, id);
 
-  const tx = await (programa.methods as any)
+  const instruccionPublicacion = await (programa.methods as any)
     .publicarWallpaper(
       titulo.trim(),
       juego.trim(),
@@ -162,9 +184,67 @@ export async function publicarWallpaper(
       owner: wallet.publicKey,
       systemProgram: SystemProgram.programId,
     })
-    .rpc();
+    .instruction();
 
-  return `Wallpaper publicado correctamente. Transacción: ${tx}`;
+  const instrucciones = [instruccionPublicacion];
+
+  const reconocimiento = obtenerReconocimiento(siguientePublicacion);
+
+  if (reconocimiento) {
+    if (!direccionColeccion) {
+      throw new Error(
+        "Primero debes crear la colección de reconocimientos antes de alcanzar este hito."
+      );
+    }
+
+    const uriMetadata =
+      URI_RECONOCIMIENTOS[reconocimiento.publicaciones];
+
+    const instruccionReconocimiento =
+      await crearInstruccionReconocimiento(
+        connection,
+        wallet,
+        new PublicKey(direccionColeccion),
+        siguientePublicacion,
+        uriMetadata
+      );
+
+    instrucciones.push(instruccionReconocimiento);
+  }
+
+  const latestBlockhash = await connection.getLatestBlockhash("confirmed");
+
+  const transaction = new Transaction({
+    feePayer: wallet.publicKey,
+    recentBlockhash: latestBlockhash.blockhash,
+  }).add(...instrucciones);
+
+  const signedTransaction = await wallet.signTransaction(transaction);
+
+  const signature = await connection.sendRawTransaction(
+    signedTransaction.serialize()
+  );
+
+  const confirmacion = await connection.confirmTransaction(
+    {
+      signature,
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    },
+    "confirmed"
+  );
+
+  if (confirmacion.value.err) {
+    throw new Error(
+      `La publicación del wallpaper o su reconocimiento falló: ${JSON.stringify(confirmacion.value.err)}`
+    );
+  }
+
+  const mensajeReconocimiento = reconocimiento
+    ? ` También se emitió el reconocimiento "${reconocimiento.nombre}".`
+    : "";
+
+  return `Wallpaper publicado correctamente.${mensajeReconocimiento} Transacción: ${signature}`;
 }
 
 // Actualizar precio
@@ -309,4 +389,137 @@ export function obtenerMensajeError(error: unknown): string {
   }
 
   return "Ocurrió un error inesperado.";
+}
+
+/**
+ * Reclama un reconocimiento ya alcanzado sin publicar otro wallpaper
+ * ni modificar el contador de la galería.
+ */
+export async function reclamarReconocimiento(
+  connection: Connection,
+  wallet: AnchorWallet,
+  direccionColeccion: string,
+  publicaciones: number
+): Promise<string> {
+  const reconocimiento = obtenerReconocimiento(publicaciones);
+
+  if (!reconocimiento) {
+    throw new Error("No existe un reconocimiento configurado para este hito.");
+  }
+
+  const uriMetadata = URI_RECONOCIMIENTOS[publicaciones as keyof typeof URI_RECONOCIMIENTOS];
+
+  if (!uriMetadata) {
+    throw new Error("No se encontró el metadata del reconocimiento.");
+  }
+
+  const claveLocal =
+    `forza-wallpapers-reconocimiento-${publicaciones}-` +
+    wallet.publicKey.toBase58();
+
+  if (localStorage.getItem(claveLocal)) {
+    throw new Error(
+      "Este reconocimiento ya fue reclamado desde este navegador. " +
+      "No vuelvas a emitirlo."
+    );
+  }
+
+  // Consultar DAS antes de emitir para evitar duplicados.
+  const umiDAS = createUmi(connection).use(
+    dasApi({ heliusCompatibility: true })
+  );
+
+  let activosDAS;
+
+  try {
+    const rpcDAS = umiDAS.rpc as typeof umiDAS.rpc & DasApiInterface;
+
+    activosDAS = await rpcDAS.getAssetsByOwner({
+      owner: fromWeb3JsPublicKey(wallet.publicKey),
+      limit: 1000,
+    });
+  } catch (error) {
+    throw new Error(
+      "No fue posible consultar DAS para comprobar si el reconocimiento " +
+      "ya existe. No se emitió ningún NFT. Detalle: " +
+      (error instanceof Error ? error.message : String(error))
+    );
+  }
+
+  const yaExiste = activosDAS.items.some((asset) =>
+    asset.grouping.some(
+      (grupo) =>
+        grupo.group_key === "collection" &&
+        grupo.group_value === direccionColeccion
+    ) &&
+    asset.content.metadata.name === reconocimiento.nombre
+  );
+
+  if (yaExiste) {
+    localStorage.setItem(claveLocal, "verificado");
+    throw new Error(
+      "DAS ya encontró este reconocimiento en tu wallet. No se emitió otro."
+    );
+  }
+
+  const instruccion = await crearInstruccionReconocimiento(
+    connection,
+    wallet,
+    new PublicKey(direccionColeccion),
+    publicaciones,
+    uriMetadata
+  );
+
+  const latestBlockhash = await connection.getLatestBlockhash("confirmed");
+
+  const transaction = new Transaction({
+    feePayer: wallet.publicKey,
+    recentBlockhash: latestBlockhash.blockhash,
+  }).add(instruccion);
+
+  // Simulación previa: todavía no se solicita la firma de Phantom.
+  const simulacion = await connection.simulateTransaction(transaction);
+
+  if (simulacion.value.err) {
+    throw new Error(
+      "La simulación del reconocimiento falló. No se envió la transacción. " +
+      JSON.stringify(simulacion.value.err) +
+      (simulacion.value.logs
+        ? "\n" + simulacion.value.logs.join("\n")
+        : "")
+    );
+  }
+
+  console.log("Simulación del reconocimiento correcta.");
+
+  const signedTransaction = await wallet.signTransaction(transaction);
+
+  const signature = await connection.sendRawTransaction(
+    signedTransaction.serialize()
+  );
+
+  const confirmacion = await connection.confirmTransaction(
+    {
+      signature,
+      blockhash: latestBlockhash.blockhash,
+      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+    },
+    "confirmed"
+  );
+
+  if (confirmacion.value.err) {
+    throw new Error(
+      "La transacción fue enviada, pero la confirmación reportó un error: " +
+      JSON.stringify(confirmacion.value.err) +
+      ". Firma: " + signature
+    );
+  }
+
+  // Evita un segundo reclamo mientras DAS termina de indexar el cNFT.
+  localStorage.setItem(claveLocal, signature);
+
+  return (
+    `Reconocimiento "${reconocimiento.nombre}" emitido correctamente. ` +
+    `Transacción: ${signature}`
+  );
 }

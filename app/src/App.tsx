@@ -14,14 +14,14 @@ import {
   SolflareWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 
-import { clusterApiUrl } from "@solana/web3.js";
+import { SOLANA_RPC } from "./solana/configuracion";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 import WallpapersPage from "./WallpapersPage";
 
 export default function App() {
-  const endpoint = clusterApiUrl("devnet");
+  const endpoint = SOLANA_RPC;
 
   const wallets = useMemo(
     () => [

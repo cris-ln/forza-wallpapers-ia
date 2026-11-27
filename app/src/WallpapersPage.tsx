@@ -9,6 +9,7 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import {
   crearGaleria,
   publicarWallpaper,
+  reclamarReconocimiento,
   actualizarPrecio,
   eliminarWallpaper,
   obtenerGaleria,
@@ -18,6 +19,8 @@ import {
   obtenerMensajeError,
 } from "./acciones";
 import type { WallpaperCatalogo } from "./acciones";
+import { crearColeccionReconocimientos } from "./solana/reconocimientos";
+import { URI_COLECCION } from "./solana/configuracion";
 
 
 function InstagramEmbed({ url }: { url: string }) {
@@ -78,6 +81,15 @@ export default function WallpapersPage() {
   const [nuevoPrecio, setNuevoPrecio] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [colecciones, setColecciones] = useState<Record<string, string>>({});
+
+  const claveColeccion = wallet.publicKey
+    ? `forza-wallpapers-reconocimientos-${wallet.publicKey.toBase58()}`
+    : "";
+
+  const direccionColeccion = claveColeccion
+    ? colecciones[claveColeccion] ?? localStorage.getItem(claveColeccion) ?? ""
+    : "";
 
   const cargarDatos = useCallback(async () => {
     if (!wallet.publicKey) {
@@ -139,6 +151,49 @@ export default function WallpapersPage() {
     setNombreGaleria("");
   }
 
+  async function manejarCrearColeccion() {
+    if (!wallet.publicKey || !anchorWallet || !wallet.signTransaction) return;
+
+    if (direccionColeccion) {
+      setMensaje("Esta wallet ya tiene una colección de reconocimientos configurada.");
+      return;
+    }
+
+    await ejecutar(async () => {
+      const resultado = await crearColeccionReconocimientos(
+        connection,
+        anchorWallet,
+        URI_COLECCION
+      );
+
+      const direccion = resultado.collection.toBase58();
+
+      localStorage.setItem(claveColeccion, direccion);
+
+      setColecciones((actuales) => ({
+        ...actuales,
+        [claveColeccion]: direccion,
+      }));
+
+      return `Colección de reconocimientos creada correctamente. Dirección: ${direccion}. Transacción: ${resultado.signature}`;
+    });
+  }
+
+  async function manejarReclamarReconocimiento(publicaciones: number) {
+    if (!anchorWallet || !direccionColeccion || wallpapers.length < publicaciones) {
+      return;
+    }
+
+    await ejecutar(() =>
+      reclamarReconocimiento(
+        connection,
+        anchorWallet,
+        direccionColeccion,
+        publicaciones
+      )
+    );
+  }
+
   async function manejarPublicar(e: React.FormEvent) {
     e.preventDefault();
 
@@ -151,7 +206,8 @@ export default function WallpapersPage() {
         titulo,
         juego,
         urlImagen,
-        solALamports(precio)
+        solALamports(precio),
+        direccionColeccion || undefined
       )
     );
 
@@ -264,6 +320,59 @@ export default function WallpapersPage() {
                 <p>
                   Wallpapers publicados: {wallpapers.length}
                 </p>
+              </section>
+
+              <section className="panel">
+                <h2>Reconocimientos NFT comprimidos</h2>
+
+                <p>
+                  Crea una colección para los reconocimientos de tus hitos
+                  de publicación.
+                </p>
+
+                {direccionColeccion ? (
+                  <>
+                    <p> Colección configurada correctamente. </p>
+                    <p>
+                      <strong>Dirección:</strong>
+                      <br />
+                      <code>{direccionColeccion}</code>
+                    </p>
+
+                    <p>Primer Wallpaper: reconocimiento ya reclamado.</p>
+
+                    {wallpapers.length >= 3 && (
+                      <button
+                        type="button"
+                        disabled={cargando}
+                        onClick={() => manejarReclamarReconocimiento(3)}
+                      >
+                        Reclamar reconocimiento: Piloto Destacado
+                      </button>
+                    )}
+
+                    {wallpapers.length >= 5 && (
+                      <button
+                        type="button"
+                        disabled={cargando}
+                        onClick={() => manejarReclamarReconocimiento(5)}
+                      >
+                        Reclamar reconocimiento: Coleccionista de Racing
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p>Aún no tienes una colección configurada para esta wallet.</p>
+                    <button
+                      type="button"
+                      disabled={cargando}
+                      onClick={manejarCrearColeccion}
+                    >
+                      Crear colección de reconocimientos
+                    </button>
+                  </>
+                )}
               </section>
 
               <section className="panel">
